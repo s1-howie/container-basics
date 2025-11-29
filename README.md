@@ -4,7 +4,7 @@
 
 ### Install Docker Desktop
 * **Windows**: [Download here](https://docs.docker.com/desktop/install/windows-install/). Ensure WSL 2 (Windows Subsystem for Linux) is selected during installation for better performance.
-* **Mac**: [Download here](https://docs.docker.com/desktop/install/mac-install/). Choose the correct chip version (Intel vs. Apple Silicon/M1/M2/M3).
+* **Mac**: [Download here](https://docs.docker.com/desktop/install/mac-install/). Choose the correct chip version (Intel vs. Apple Silicon).
 
 ### Create a Docker Hub Account
 Docker Hub is a registry where container images are stored.
@@ -23,18 +23,24 @@ Before containers, applications were often deployed on **Virtual Machines (VMs)*
 * **Portability**: "It works on my machine" is solved. If it runs in a container, it runs anywhere.
 * **Efficiency**: You can pack many more containers onto a server than VMs.
 * **Isolation**: Apps are isolated from one another, preventing conflicts (e.g., App A needs Python 2, App B needs Python 3).
+* **Microservices**:  Break larger applications up into smaller services. Each service/container can be updated independently
+
 
 ---
 
 ## 3. What is a Container *Really*?
-A container is not a real physical object; it is a set of Linux kernel features working together to create an isolated environment.
+A container is a kind of virtualization made possible via Linux kernel features working together to create an isolated environment.
 
-1.  **Namespaces (Isolation)**: These deceive the process into thinking it has its own dedicated computer.
-    * *PID Namespace*: The process thinks it is PID 1 (the only process).
-    * *Network Namespace*: The process sees its own IP address and ports.
-    * *Mount Namespace*: The process sees its own file system.
+1.  **Namespaces (Isolation)**: These trick the process into thinking it is running on its own host machine.
+    * *PID (process ID) Namespace*: Gives each container its own isolated process tree (with its own PID 1).  On Linux, PID 1 is the very first process that starts and manages everything else.
+    * *NET (network) Namespace*: Gives each container its own isolated network stack.
+    * *MNT (mount) Namespace*: Gives each container its own isolated root filesystem.
+    * *IPC (inter-process communication) Namespace*: Lets processes in the same container share memory 
+    * *UTS (unix time-sharing) Namespace*: Gives  each container its own hostname (doesn't really have to do with time despite the name)
+    * *USER  Namespace*: Lets you map user accounts in the container to different user accounts on the underlying host (ie: mapping the container's root user to a non-privileged user on the host).
+
 2.  **Control Groups / cgroups (Limits)**: These limit how much CPU and Memory the container can use. This prevents one container from crashing the whole server.
-3.  **Union Filesystem (Storage)**: This allows images to be built in layers. If you change one file, Docker only saves that specific layer, not the whole OS again.
+3.  **Union Filesystem (Storage)**: Allows llow containers to stack multiple read-only image layers into a single unified view, enabling efficient storage by sharing common data across different containers. This architecture relies on a "copy-on-write" mechanism, where any modifications made by the running container are written to a thin, disposable top layer without altering the original underlying image.
 
 ---
 
@@ -42,7 +48,7 @@ A container is not a real physical object; it is a set of Linux kernel features 
 An **Image** is a read-only template used to create a container. It contains:
 * The Application Code
 * The Runtime (e.g., Python, Node.js, Java)
-* System Libraries
+* System Libraries and Dependencies
 * Environment Variables
 
 Think of the **Image** as the "cookie cutter" and the **Container** as the "cookie."
@@ -51,6 +57,7 @@ Think of the **Image** as the "cookie cutter" and the **Container** as the "cook
 
 ## 5. Basic Dockerfile Syntax
 A `Dockerfile` is a text document that contains all the commands to assemble an image.
+[Official Dockerfile reference](https://docs.docker.com/reference/dockerfile/)
 
 | Instruction | Description |
 | :--- | :--- |
@@ -61,6 +68,7 @@ A `Dockerfile` is a text document that contains all the commands to assemble an 
 | `ENV` | Sets environment variables (e.g., `ENV PORT=8080`). |
 | `EXPOSE` | Documentation that tells users which port the app listens on. |
 | `CMD` | The command the container runs when it starts. |
+| `ENTRYPOINT` | The command the container runs when it starts. |
 
 ---
 
