@@ -146,10 +146,10 @@ CMD ["python", "main.py"]
 ## 7. Hands-on Lab
 
 ### Step 1: Examine the Code
-Navigate to the `/app` folder. We have a simple Python web server that is designed for Kubernetes (it reads configuration from the environment).
+Navigate to the `./app` folder. We have a simple Python web server that is designed for Kubernetes (it reads configuration from the environment).
 
 ### Step 2: Build the Image
-Run this from the root of the repo:
+Run this from the <u>root</u> of the repo:
 ```bash
 docker build -t my-python-app:v1 ./app
 ```
