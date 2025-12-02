@@ -40,7 +40,7 @@ A container is a kind of virtualization made possible via Linux kernel features 
     * *USER  Namespace*: Lets you map user accounts in the container to different user accounts on the underlying host (ie: mapping the container's root user to a non-privileged user on the host).
 
 2.  **Control Groups / cgroups (Limits)**: These limit how much CPU and Memory the container can use. This prevents one container from crashing the whole server.
-3.  **Union Filesystem (Storage)**: Allows llow containers to stack multiple read-only image layers into a single unified view, enabling efficient storage by sharing common data across different containers. This architecture relies on a "copy-on-write" mechanism, where any modifications made by the running container are written to a thin, disposable top layer without altering the original underlying image.
+3.  **Union Filesystem (Storage)**: Allows containers to stack multiple read-only image layers into a single unified view, enabling efficient storage by sharing common data across different containers. This architecture relies on a "copy-on-write" mechanism, where any modifications made by the running container are written to a thin, disposable top layer without altering the original underlying image.
 
 ---
 
@@ -69,6 +69,48 @@ A `Dockerfile` is a text document that contains all the commands to assemble an 
 | `EXPOSE` | Documentation that tells users which port the app listens on. |
 | `CMD` | The command that runs if no arguments are passed after the image name. If arguments ARE added after the image name, the CMD is completely ignored and replaced by the user's arguments. |
 | `ENTRYPOINT` | The command specified in ENTRYPOINT runs no matter what. If a user passes arguments to docker run, they are appended to the end of the ENTRYPOINT command rather than replacing it. |
+
+### Example Dockerfile (with descriptions)
+```Dockerfile
+## Example Dockerfile (with descriptions)
+
+# 1. Base Image: Start with a lightweight Python image
+#    This gives us Python 3.9 on top of a minimal Debian-based OS.
+FROM python:3.9-slim
+
+# 2. Workdir: Set the working directory inside the container
+#    All following commands (COPY, RUN, CMD, etc.) will run from /app inside the container.
+WORKDIR /app
+
+# 3. Dependencies: Copy requirements first to leverage Docker Layer Caching
+#    We only copy requirements.txt at this step so that if our code changes
+#    but requirements.txt does NOT, Docker can reuse the cached layer.
+COPY requirements.txt .
+
+# 4. Install Python dependencies listed in requirements.txt.
+#    --no-cache-dir keeps the final image smaller by not caching wheels.
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. Copy Code: Copy the rest of the application code
+#    This brings in main.py and any other app files from the host into /app.
+COPY . .
+
+# 6. Environment: Set default environment variables (can be overridden at runtime)
+#    APP_PORT: the port our Python web app will listen on inside the container.
+#    APP_MESSAGE: a default message our app will return if nothing else is set.
+ENV APP_PORT=5000
+ENV APP_MESSAGE="Default Message"
+
+# 7. Expose: Document that this container listens on port 5000
+#    This doesn't actually publish the port; it just documents it.
+#    Publishing happens when we run: docker run -p 8080:5000 ...
+EXPOSE 5000
+
+# 8. Command: The command to run when the container starts
+#    This tells Docker to run "python main.py" when a container is created
+#    from this image (unless the user overrides the command).
+CMD ["python", "main.py"]
+```
 
 ---
 
@@ -119,6 +161,7 @@ docker run -d --name webserver --rm -p 8080:5000 my-python-app:v1
 ```
 
 ### Step 4: List running containers
+The 'docker ps' command is one you'll use often.  It shows information such as the container name, ID, Image, Command, Port mappings and current status.
 ```bash
 docker ps
 ```
